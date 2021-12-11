@@ -6,7 +6,7 @@ const mongo = {
   users: null,
   chats: null,
   friends: null,
-  channels: null,
+  groups: null,
 
   async connect() {
     await client.connect(); // Connecting to DB
@@ -16,7 +16,7 @@ const mongo = {
     this.users = db.collection("users");
     this.chats = db.collection("chats");
     this.friends = db.collection("friends");
-    this.channels = db.collection("channels");
+    this.groups = db.collection("groups");
   }
 };
 

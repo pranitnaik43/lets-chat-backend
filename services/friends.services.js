@@ -2,6 +2,7 @@ const { ObjectId } = require("mongodb");
 const Joi = require("joi");
 
 const db = require("../mongo");
+const authService = require("./auth.services");
 
 const freindRequestStatus = {
   PENDING: "pending",
@@ -10,22 +11,8 @@ const freindRequestStatus = {
 }
 
 const service = {
-  async getUserDataFromEmail(email) {
-    let user = await db.users.findOne({email});
-    if(!user) {
-      return null;
-    }
-    //don't send password
-    let dataWithoutPassword = {};
-    Object.keys(user).forEach(key => {
-      if(key!=="password") {
-        dataWithoutPassword[key] = user[key];
-      }
-    });
-    return dataWithoutPassword;
-  },
   async getAllFriends(req, res) {
-    //get all friends
+    //get all friends for the user
     try {
       let userEmail = req.userEmail;  //current user email
 
@@ -37,7 +24,7 @@ const service = {
       let friendsData = await Promise.all(friendsRecords.map(async (friendRecord) => {
 
         let friendMail = (friendRecord.user1!==userEmail) ? (friendRecord.user1) : (friendRecord.user2);
-        let friend = await service.getUserDataFromEmail(friendMail);
+        let friend = await authService.getUserDataWithoutPassword(friendMail);
         if(friend) {
           friendRecord.friendsData = friend;
           return friendRecord;
@@ -71,13 +58,8 @@ const service = {
       }
 
       //send friend's data without password
-      const responseData = {};
-      Object.keys(friend).forEach(key => {
-        if(key!=="password") {
-          responseData[key] = friend[key];
-        }
-      });
-      res.send({ ...responseData });
+      let friendData = authService.getUserDataWithoutPassword(friendEmail);
+      res.send({ ...friendData });
 
     } catch (err) {
       console.log(err);

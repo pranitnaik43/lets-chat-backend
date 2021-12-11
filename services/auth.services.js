@@ -21,6 +21,20 @@ const service = {
   findByEmail(email) {
     return db.users.findOne({ email });
   },
+  async getUserDataWithoutPassword(email) {
+    let user = await db.users.findOne({email});
+    if(!user) {
+      return null;
+    }
+    //don't send password
+    let dataWithoutPassword = {};
+    Object.keys(user).forEach(key => {
+      if(key!=="password") {
+        dataWithoutPassword[key] = user[key];
+      }
+    });
+    return dataWithoutPassword;
+  },
   async findById(req, res) {
     let userId = req.userId;
     let user = await db.users.findOne({ _id: new ObjectId(userId) });
