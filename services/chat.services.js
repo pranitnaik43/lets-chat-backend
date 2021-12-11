@@ -31,23 +31,27 @@ const service = {
     }
   },
   async isFriendOrGroup(connectionId) {
-    let id;
+    let data;
     //isFriend
-    id = db.friends.findOne({_id: new ObjectId(connectionId)});
-    if(id) return "group";
+    data = db.friends.findOne({_id: new ObjectId(connectionId)});
+    if(data) return "group";
     //isGroup
-    id = db.groups.findOne({_id: new ObjectId(connectionId)});
-    if(id) return "friend";
+    data = db.groups.findOne({_id: new ObjectId(connectionId)});
+    if(data) return "friend";
     return null;
   },
   async sendMessage(req, res) {
     try {
       let connectionId = req.body.connectionId;
+      let message = req.body.message;
+
+      if(!connectionId) {
+        return res.send({ error: { message: "Invalid ID" } });
+      }
       if(!service.isFriendOrGroup(connectionId)) {
         return res.send({ error: { message: "Invalid ID" } });
       }
 
-      let message = req.body.message;
       // Validate message 
       const { error } = await messageBody.validate(req.body);
       if (error) return res.send({ error: { message: error.details[0].message } });
