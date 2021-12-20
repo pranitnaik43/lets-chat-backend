@@ -40,17 +40,37 @@ const chatServices = require("./services/chat.services");
     app.use("/friends", friendsRoutes);
 
     io.on("connection", (socket) => {
-      // console.log("new client connected");
       socket.emit('connection', null);
-      socket.on("message", async (connectionId) => {
-        //check if connection exists
-        let exists = await chatServices.isFriendOrGroup(connectionId);
-        console.log("message received", exists, connectionId);
-        if (exists) {
-          // socket.broadcast.emit(connectionId, null);
-          io.sockets.emit(connectionId, null);
-        }
-      });
+        socket.on("message", async (connectionId) => {
+          //check if connection exists in db
+          let exists = await chatServices.isFriendOrGroup(connectionId);
+          // console.log("message received", exists, connectionId);
+          if (exists) {
+            //notify about new message
+            socket.broadcast.emit(connectionId, null);
+            // io.sockets.emit(connectionId, event);
+          }
+        });
+        socket.on("friend-request", async (friendEmail) => {
+          //check if friend exists in db
+          let exists = await authService.getUserDataWithoutPassword(friendEmail);
+          if (exists) {
+            //notify friend about request
+            console.log("friendRequest", friendEmail);
+            socket.broadcast.emit(friendEmail, "friend-request");
+          }
+        });
+        socket.on("friend-added", async (friendEmail) => {
+          //check if friend exists in db
+          let exists = await authService.getUserDataWithoutPassword(friendEmail);
+          if (exists) {
+            // notify friend to refresh friendsList
+            socket.broadcast.emit(friendEmail, "friend-added");
+            // notify sender to refresh friendsList
+            socket.emit("friend-added", null);
+          }
+        });
+
     });
 
     http.listen(PORT, () =>
