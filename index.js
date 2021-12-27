@@ -70,6 +70,9 @@ const chatServices = require("./services/chat.services");
             socket.emit("friend-added", null);
           }
         });
+        socket.on('disconnect', function() {
+          console.log('Got disconnect!');
+       });
 
     });
 
